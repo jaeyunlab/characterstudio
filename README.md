@@ -37,7 +37,7 @@ VITE_GEMINI_API_KEY=your_gemini_api_key
 VITE_NANO_BANANA_API_KEY=your_nano_banana_api_key  # 선택사항
 ```
 
-또는 앱 내에서 API 키 설정 패널을 통해 입력할 수 있습니다.
+배포 환경에서는 위 환경 변수를 설정해두면 별도의 입력 없이 바로 사용됩니다.
 
 ### 3. 개발 서버 실행
 
