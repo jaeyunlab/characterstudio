@@ -50,7 +50,7 @@ function App() {
     }
 
     if (!apiKeys.gemini) {
-      setError('Gemini API 키를 입력해주세요.');
+      setError('Gemini API 키가 설정되지 않았습니다. 환경변수를 확인해주세요.');
       return;
     }
 
@@ -90,7 +90,8 @@ function App() {
     }
   }, [uploadedFile, additionalPrompt, apiKeys]);
 
-  const canGenerate = uploadedFile !== null && apiKeys.gemini.length > 0;
+  // 이미지만 업로드하면 버튼 활성화 (API 키는 클릭 시 체크)
+  const canGenerate = uploadedFile !== null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">

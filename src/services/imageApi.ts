@@ -56,8 +56,8 @@ async function generateWithGemini(
           {
             parts: [
               {
-                inline_data: {
-                  mime_type: 'image/png',
+                inlineData: {
+                  mimeType: 'image/png',
                   data: imageBase64,
                 },
               },
@@ -76,8 +76,7 @@ Important:
           },
         ],
         generationConfig: {
-          responseModalities: ['image', 'text'],
-          imageSafety: 'block_only_high',
+          responseModalities: ['IMAGE', 'TEXT'],
         },
       }),
     }
@@ -90,15 +89,28 @@ Important:
   if (!response.ok) {
     const errorText = await response.text();
     console.error('Gemini API Error:', errorText);
-    throw new Error(`Gemini API 오류: ${response.status}`);
+
+    // 에러 메시지 파싱 시도
+    try {
+      const errorJson = JSON.parse(errorText);
+      const errorMessage = errorJson.error?.message || `API 오류: ${response.status}`;
+      throw new Error(errorMessage);
+    } catch {
+      throw new Error(`Gemini API 오류: ${response.status}`);
+    }
   }
 
   const data = await response.json();
+  console.log('Gemini API Response:', JSON.stringify(data, null, 2));
 
   // 응답에서 이미지 데이터 추출
   const candidates = data.candidates;
   if (!candidates || candidates.length === 0) {
-    throw new Error('이미지 생성 결과가 없습니다.');
+    // 차단된 경우 확인
+    if (data.promptFeedback?.blockReason) {
+      throw new Error(`콘텐츠가 차단되었습니다: ${data.promptFeedback.blockReason}`);
+    }
+    throw new Error('이미지 생성 결과가 없습니다. API 응답을 확인해주세요.');
   }
 
   const parts = candidates[0].content?.parts;
@@ -113,7 +125,13 @@ Important:
     }
   }
 
-  throw new Error('생성된 이미지를 찾을 수 없습니다.');
+  // 이미지가 없으면 텍스트 응답 확인
+  const textPart = parts.find((p: { text?: string }) => p.text);
+  if (textPart?.text) {
+    console.log('Gemini returned text instead of image:', textPart.text);
+  }
+
+  throw new Error('생성된 이미지를 찾을 수 없습니다. 모델이 이미지 생성을 지원하지 않을 수 있습니다.');
 }
 
 // Nano Banana API를 통한 이미지 생성 (폴백)
@@ -243,7 +261,12 @@ export async function generateImages(
       }
     } catch (error) {
       console.error(`이미지 ${i + 1} 생성 실패:`, error);
-      // 실패해도 계속 진행
+
+      // 첫 번째 이미지 생성 실패 시 에러를 throw하여 사용자에게 알림
+      if (i === 0) {
+        throw error;
+      }
+      // 이후 이미지는 실패해도 계속 진행
     }
   }
 
