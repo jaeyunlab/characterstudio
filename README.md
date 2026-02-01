@@ -37,7 +37,7 @@ VITE_GEMINI_API_KEY=your_gemini_api_key
 VITE_NANO_BANANA_API_KEY=your_nano_banana_api_key  # 선택사항
 ```
 
-또는 앱 내에서 API 키 설정 패널을 통해 입력할 수 있습니다.
+배포 환경에서는 위 환경 변수를 설정해두면 별도의 입력 없이 바로 사용됩니다.
 
 ### 3. 개발 서버 실행
 
@@ -82,6 +82,36 @@ npm run build
 
 ### Nano Banana Pro API (선택)
 - Gemini API 할당량 초과 시 자동으로 사용되는 백업 API
+
+## GitHub Pages 배포
+
+GitHub Pages로 배포하기 위해 기본 워크플로우와 `BASE_PATH` 환경 변수를 사용합니다.
+
+### 1) GitHub Actions 워크플로우 확인
+
+`.github/workflows/deploy.yml`이 기본으로 포함되어 있습니다. `main` 브랜치에 push되면 자동으로 빌드/배포됩니다.
+
+> 참고: GitHub UI에서 “Deploy static content to GitHub Pages” 템플릿이 보이지 않는 경우가 있습니다. 이때는 템플릿을 찾지 말고 `deploy.yml`을 직접 커밋하는 방식이 가장 빠르고 확실합니다.
+
+### 2) BASE_PATH 설정
+
+GitHub Pages는 리포지토리 이름에 따라 경로가 달라집니다.
+
+- **프로젝트 페이지** (예: `https://username.github.io/characterstudio/`)
+  - 기본값 `/${repoName}/`을 사용하므로 별도 수정 없이 배포됩니다.
+- **유저/조직 페이지** (예: `https://username.github.io/`)
+  - `BASE_PATH`를 `/`로 변경해야 합니다.
+  - `.github/workflows/deploy.yml`에서 `BASE_PATH` 값을 `/`로 수정하세요.
+
+### 3) GitHub Pages 설정
+
+1. GitHub 저장소 → **Settings** → **Pages**
+2. **Build and deployment**에서 Source를 **GitHub Actions**로 선택
+3. 배포가 완료되면 제공되는 URL로 접속
+
+### 4) 배포 확인
+
+배포 후 페이지가 하얗게 나오면 `BASE_PATH` 설정이 맞는지 다시 확인하세요.
 
 ## 라이선스
 

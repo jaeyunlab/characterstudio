@@ -1,11 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Header,
   ImageUpload,
   PromptInput,
   GenerateButton,
   ImageGrid,
-  ApiKeyInput,
 } from './components';
 import type { GeneratedImage } from './types';
 import { generateImages, resetApiProvider } from './services/imageApi';
@@ -19,7 +18,13 @@ function App() {
   const [additionalPrompt, setAdditionalPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState({ current: 0, total: 9, currentTheme: '' });
-  const [apiKeys, setApiKeys] = useState({ gemini: '', nanoBanana: '' });
+  const apiKeys = useMemo(
+    () => ({
+      gemini: import.meta.env.VITE_GEMINI_API_KEY ?? '',
+      nanoBanana: import.meta.env.VITE_NANO_BANANA_API_KEY ?? '',
+    }),
+    []
+  );
 
   // 이미지 업로드 핸들러
   const handleImageUpload = useCallback((file: File, previewUrl: string) => {
@@ -35,11 +40,6 @@ function App() {
     setGeneratedImages([]);
     setError(null);
     resetApiProvider();
-  }, []);
-
-  // API 키 변경 핸들러
-  const handleApiKeyChange = useCallback((geminiKey: string, nanoBananaKey: string) => {
-    setApiKeys({ gemini: geminiKey, nanoBanana: nanoBananaKey });
   }, []);
 
   // 이미지 생성 핸들러
@@ -129,11 +129,6 @@ function App() {
                   onChange={setAdditionalPrompt}
                   disabled={isGenerating}
                 />
-              </div>
-
-              {/* API 키 설정 */}
-              <div className="glass rounded-2xl p-6">
-                <ApiKeyInput onApiKeyChange={handleApiKeyChange} />
               </div>
 
               {/* 생성 버튼 */}
