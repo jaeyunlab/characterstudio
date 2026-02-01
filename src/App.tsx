@@ -1,10 +1,11 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Header,
   ImageUpload,
   PromptInput,
   GenerateButton,
   ImageGrid,
+  ApiKeyInput,
 } from './components';
 import type { GeneratedImage } from './types';
 import { generateImages, resetApiProvider } from './services/imageApi';
@@ -18,13 +19,7 @@ function App() {
   const [additionalPrompt, setAdditionalPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState({ current: 0, total: 9, currentTheme: '' });
-  const apiKeys = useMemo(
-    () => ({
-      gemini: import.meta.env.VITE_GEMINI_API_KEY ?? '',
-      nanoBanana: import.meta.env.VITE_NANO_BANANA_API_KEY ?? '',
-    }),
-    []
-  );
+  const [apiKeys, setApiKeys] = useState({ gemini: '', nanoBanana: '' });
 
   // 이미지 업로드 핸들러
   const handleImageUpload = useCallback((file: File, previewUrl: string) => {
@@ -40,6 +35,11 @@ function App() {
     setGeneratedImages([]);
     setError(null);
     resetApiProvider();
+  }, []);
+
+  // API 키 변경 핸들러
+  const handleApiKeyChange = useCallback((geminiKey: string, nanoBananaKey: string) => {
+    setApiKeys({ gemini: geminiKey, nanoBanana: nanoBananaKey });
   }, []);
 
   // 이미지 생성 핸들러
@@ -60,7 +60,7 @@ function App() {
     setProgress({ current: 0, total: 9, currentTheme: '준비 중...' });
 
     try {
-      // 로컬 스토리지의 API 키를 환경 변수처럼 사용
+      // API 키를 window 객체에 설정
       (window as unknown as Record<string, string>).__GEMINI_API_KEY__ = apiKeys.gemini;
       (window as unknown as Record<string, string>).__NANO_BANANA_API_KEY__ = apiKeys.nanoBanana;
 
@@ -69,7 +69,6 @@ function App() {
         additionalPrompt,
         (completed, total, currentTheme) => {
           setProgress({ current: completed, total, currentTheme });
-          // 실시간으로 생성된 이미지 추가
         }
       );
 
@@ -129,6 +128,11 @@ function App() {
                   onChange={setAdditionalPrompt}
                   disabled={isGenerating}
                 />
+              </div>
+
+              {/* API 키 설정 */}
+              <div className="glass rounded-2xl p-6">
+                <ApiKeyInput onApiKeyChange={handleApiKeyChange} />
               </div>
 
               {/* 생성 버튼 */}
